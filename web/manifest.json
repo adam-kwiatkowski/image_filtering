@@ -1,6 +1,6 @@
 {
-    "name": "image_filtering",
-    "short_name": "image_filtering",
+    "name": "Image filtering",
+    "short_name": "Image filtering",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
