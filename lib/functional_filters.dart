@@ -1,9 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
+
 import 'filters.dart';
 
 class InvertFilter extends ImageFilter {
-  InvertFilter() : super("Invert");
+  InvertFilter() : super("Invert", icon: Icons.invert_colors);
 
   @override
   void apply(Uint8List pixels, int width, int height) {
@@ -16,7 +18,7 @@ class InvertFilter extends ImageFilter {
 }
 
 class GrayscaleFilter extends ImageFilter {
-  GrayscaleFilter() : super("Grayscale");
+  GrayscaleFilter() : super("Grayscale", icon: Icons.filter_b_and_w);
 
   @override
   void apply(Uint8List pixels, int width, int height) {
