@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_filtering/filters.dart';
 import 'package:provider/provider.dart';
 
-import 'models/filters_model.dart';
+import 'models/active_filters_model.dart';
 
 class ImagePreview extends StatelessWidget {
   const ImagePreview({
@@ -18,7 +18,7 @@ class ImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var filters = context.watch<FiltersModel>();
+    var filters = context.watch<ActiveFiltersModel>();
     return SizedBox(
       width: 350,
       height: 350,
@@ -52,13 +52,13 @@ class ImagePreview extends StatelessWidget {
     );
   }
 
-  Future<ui.Image> buildImage(FiltersModel filters) {
+  Future<ui.Image> buildImage(ActiveFiltersModel filters) {
     return _image!.toByteData().then((pixels) {
       return compute(applyFilters, {
         'pixels': pixels!.buffer.asUint8List(),
         'width': _image!.width,
         'height': _image!.height,
-        'filters': filters.filters,
+        'filters': filters.list,
       }).then((result) {
         final completer = Completer<ui.Image>();
         ui.decodeImageFromPixels(result, _image!.width, _image!.height,
@@ -67,4 +67,17 @@ class ImagePreview extends StatelessWidget {
       });
     });
   }
+}
+
+Uint8List applyFilters(Map<String, dynamic> args) {
+  Uint8List pixels = args['pixels'];
+  int width = args['width'];
+  int height = args['height'];
+  List<ImageFilter> filters = args['filters'];
+
+  for (var i = 0; i < filters.length; i++) {
+    filters[i].apply(pixels, width, height);
+  }
+
+  return pixels;
 }

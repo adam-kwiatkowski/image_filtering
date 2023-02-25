@@ -2,17 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_filtering/filters.dart';
 
-import '../functional_filters.dart';
+class ActiveFiltersModel extends ChangeNotifier {
+  final List<ImageFilter> _filters = [];
 
-class FiltersModel extends ChangeNotifier {
-  final List<ImageFilter> _filters = [
-    NoFilter(),
-    InvertFilter(),
-    GrayscaleFilter(),
-    CompositeFilter([InvertFilter()])
-  ];
-
-  List<ImageFilter> get filters => _filters;
+  List<ImageFilter> get list => _filters;
 
   void reorder(int oldIndex, int newIndex) {
     if (oldIndex < newIndex) {
@@ -36,5 +29,17 @@ class FiltersModel extends ChangeNotifier {
   void clear() {
     _filters.clear();
     notifyListeners();
+  }
+
+  ImageFilter merge() {
+    List<ImageFilter> filters = [];
+    for (var i = 0; i < _filters.length; i++) {
+      if (_filters[i] is CompositeFilter) {
+        filters.addAll((_filters[i] as CompositeFilter).filters);
+      } else {
+        filters.add(_filters[i]);
+      }
+    }
+    return CompositeFilter(filters);
   }
 }

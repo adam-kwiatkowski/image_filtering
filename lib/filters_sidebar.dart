@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_filtering/filters.dart';
 import 'package:provider/provider.dart';
 
-import 'models/filters_model.dart';
+import 'models/active_filters_model.dart';
+import 'models/filter_gallery_model.dart';
 
 class FiltersSidebar extends StatelessWidget {
   const FiltersSidebar({
@@ -11,7 +12,9 @@ class FiltersSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var filters = context.watch<FiltersModel>();
+    var activeFilters = context.watch<ActiveFiltersModel>();
+    var filterGallery = context.watch<FilterGalleryModel>();
+
     return Container(
       color: Theme.of(context).colorScheme.surface,
       child: Padding(
@@ -32,47 +35,20 @@ class FiltersSidebar extends StatelessWidget {
             Expanded(
                 child: ReorderableListView(
               buildDefaultDragHandles: false,
-              onReorder: filters.reorder,
+              onReorder: activeFilters.reorder,
               children: [
-                for (var filter in filters.filters)
-                  filter is CompositeFilter
+                for (int i = 0; i < activeFilters.list.length; i++)
+                  activeFilters.list[i] is CompositeFilter
                       ? ListTileTheme(
                           dense: true,
-                          key: ValueKey(filter),
-                          child: ExpansionTile(
-                            title: Text(filter.name),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                PopupMenuButton(itemBuilder: (context) {
-                                  return [
-                                    const PopupMenuItem(
-                                      value: 'remove',
-                                      child: Text('Remove'),
-                                    ),
-                                  ];
-                                }, onSelected: (value) {
-                                  if (value == 'remove') {
-                                    filters.remove(filter);
-                                  }
-                                }),
-                                ReorderableDragStartListener(
-                                    index: filters.filters.indexOf(filter),
-                                    child: const Icon(Icons.drag_handle))
-                              ],
-                            ),
-                            children: [
-                              for (var subFilter in filter.filters)
-                                buildSubListTile(subFilter)
-                            ],
-                          ),
+                          key: ValueKey(i),
+                          child: buildExpansionTile(i, activeFilters),
                         )
                       : ListTileTheme(
                           iconColor:
                               Theme.of(context).colorScheme.onSurfaceVariant,
-                          key: ValueKey(filter),
-                          child: buildListTile(filter, filters)),
+                          key: ValueKey(i),
+                          child: buildListTile(i, activeFilters)),
               ],
             )),
             Column(
@@ -87,20 +63,44 @@ class FiltersSidebar extends StatelessWidget {
                     children: [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          // Foreground color
                           foregroundColor:
                               Theme.of(context).colorScheme.onPrimary,
                           backgroundColor:
                               Theme.of(context).colorScheme.primary,
                         ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
-                        onPressed: () {},
+                        onPressed: activeFilters.list.isNotEmpty
+                            ? () {
+                                var filter = activeFilters.merge();
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Add filter'),
+                                        content: TextField(
+                                          onChanged: (value) {
+                                            filter.name = value;
+                                          },
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              filterGallery.add(filter);
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text('Save'),
+                                          ),
+                                        ],
+                                      );
+                                    });
+                              }
+                            : null,
                         child: const Text('Save filter'),
                       ),
                       const SizedBox(
                         width: 8,
                       ),
                       OutlinedButton(
-                        onPressed: () {},
+                        onPressed: activeFilters.clear,
                         child: const Text("Clear all"),
                       ),
                     ],
@@ -114,21 +114,51 @@ class FiltersSidebar extends StatelessWidget {
     );
   }
 
-  ListTile buildSubListTile(ImageFilter filter) {
+  ExpansionTile buildExpansionTile(int i, ActiveFiltersModel filters) {
+    var filter = filters.list[i] as CompositeFilter;
+    return ExpansionTile(
+      title: Text(filter.name),
+      controlAffinity: ListTileControlAffinity.leading,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PopupMenuButton(itemBuilder: (context) {
+            return [
+              const PopupMenuItem(
+                value: 'remove',
+                child: Text('Remove'),
+              ),
+            ];
+          }, onSelected: (value) {
+            if (value == 'remove') {
+              filters.remove(filter);
+            }
+          }),
+          ReorderableDragStartListener(
+              index: i, child: const Icon(Icons.drag_handle))
+        ],
+      ),
+      children: [
+        for (int j = 0; j < filter.filters.length; j++)
+          buildSubListTile(j, filter.filters[j])
+      ],
+    );
+  }
+
+  ListTile buildSubListTile(int i, ImageFilter filter) {
     return ListTile(
-      key: ValueKey(filter),
+      key: ValueKey(i),
       dense: true,
-      // contentPadding: const EdgeInsets.fromLTRB(16, 8, 24, 8),
       title: Text(filter.name),
       leading: Icon(filter.icon),
     );
   }
 
-  ListTile buildListTile(ImageFilter filter, FiltersModel filters) {
+  ListTile buildListTile(int i, ActiveFiltersModel filters) {
+    var filter = filters.list[i];
     return ListTile(
-      key: ValueKey(filter),
+      key: ValueKey(i),
       dense: true,
-      // contentPadding: const EdgeInsets.fromLTRB(16, 0, 24, 0),
       title: Text(filter.name),
       leading: Icon(filter.icon),
       trailing: Row(
@@ -147,8 +177,7 @@ class FiltersSidebar extends StatelessWidget {
             }
           }),
           ReorderableDragStartListener(
-              index: filters.filters.indexOf(filter),
-              child: const Icon(Icons.drag_handle)),
+              index: i, child: const Icon(Icons.drag_handle)),
         ],
       ),
     );
