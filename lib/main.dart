@@ -1,16 +1,23 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/material.dart';
 import 'package:image_filtering/models/filter_gallery_model.dart';
 import 'package:provider/provider.dart';
+import 'package:window_size/window_size.dart';
 
-import 'filters_sidebar.dart';
-import 'image_input.dart';
-import 'image_preview.dart';
+import 'widgets/filter_gallery.dart';
+import 'widgets/filters_sidebar.dart';
+import 'widgets/image_input.dart';
+import 'widgets/image_preview.dart';
 import 'models/active_filters_model.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    setWindowMinSize(const Size(900, 600));
+  }
   runApp(const MyApp());
 }
 
@@ -63,14 +70,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var filterGallery = context.watch<FilterGalleryModel>();
     return Scaffold(
       body: Center(
         child: Row(
           children: [
-            const Expanded(flex: 2, child: FiltersSidebar()),
+            const Expanded(flex: 3, child: FiltersSidebar()),
             Expanded(
-              flex: 6,
+              flex: 8,
               child: Column(
                 children: [
                   Expanded(
@@ -79,48 +85,27 @@ class _MyHomePageState extends State<MyHomePage> {
                           .colorScheme
                           .secondaryContainer
                           .withOpacity(0.45),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          ImageInput(
-                            onImageSelected: _handleImageSelected,
-                          ),
-                          const SizedBox(
-                            width: 25,
-                          ),
-                          ImagePreview(image: _originalImage),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Expanded(
+                              child: ImageInput(
+                                onImageSelected: _handleImageSelected,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 32,
+                            ),
+                            Expanded(
+                                child: ImagePreview(image: _originalImage)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  IntrinsicHeight(
-                    child: Row(
-                      children: [
-                        const VerticalDivider(
-                          width: 1,
-                          thickness: 1,
-                        ),
-                        Container(
-                          color: Theme.of(context).colorScheme.surface,
-                          child: Row(
-                            children: [
-                              for (var filter in filterGallery.list)
-                                Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ElevatedButton(
-                                      onPressed: () => {
-                                        context
-                                            .read<ActiveFiltersModel>()
-                                            .add(filter)
-                                      },
-                                      child: Text(filter.name),
-                                    )),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  )
+                  const FilterGallery()
                 ],
               ),
             ),

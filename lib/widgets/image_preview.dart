@@ -3,10 +3,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_filtering/filters.dart';
+import 'package:image_filtering/filters/filters.dart';
 import 'package:provider/provider.dart';
 
-import 'models/active_filters_model.dart';
+import '../models/active_filters_model.dart';
 
 class ImagePreview extends StatelessWidget {
   const ImagePreview({
@@ -19,9 +19,8 @@ class ImagePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var filters = context.watch<ActiveFiltersModel>();
-    return SizedBox(
-      width: 350,
-      height: 350,
+    return AspectRatio(
+      aspectRatio: 1,
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: _image == null

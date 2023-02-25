@@ -43,9 +43,8 @@ class _ImageInputState extends State<ImageInput> {
           }
         })
       },
-      child: SizedBox(
-        width: 350,
-        height: 350,
+      child: AspectRatio(
+        aspectRatio: 1,
         child: Card(
           clipBehavior: Clip.antiAlias,
           shape: _isDragging

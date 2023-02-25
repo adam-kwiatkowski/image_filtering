@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_filtering/filters.dart';
+import 'package:image_filtering/filters/filters.dart';
 
-import '../base_filters.dart';
+import '../filters/base_filters.dart';
 
 class FilterGalleryModel extends ChangeNotifier {
   final List<ImageFilter> _filters = predefinedFilters;

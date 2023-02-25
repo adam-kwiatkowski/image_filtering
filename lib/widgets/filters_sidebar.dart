@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:image_filtering/filters.dart';
+import 'package:image_filtering/filters/filters.dart';
 import 'package:provider/provider.dart';
 
-import 'models/active_filters_model.dart';
-import 'models/filter_gallery_model.dart';
+import '../models/active_filters_model.dart';
+import '../models/filter_gallery_model.dart';
 
 class FiltersSidebar extends StatelessWidget {
   const FiltersSidebar({

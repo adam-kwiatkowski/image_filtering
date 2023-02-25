@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_filtering/filters.dart';
+import 'package:image_filtering/filters/filters.dart';
 
 class ActiveFiltersModel extends ChangeNotifier {
   final List<ImageFilter> _filters = [];

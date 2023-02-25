@@ -142,6 +142,7 @@ class ConvolutionFilter extends ImageFilter {
   }
 }
 
+// invert, grayscale, brightness, contrast, gamma correction, blur, gaussian blur, sharpen, edge detection, emboss
 var predefinedFilters = [
   InvertFilter(),
   GrayscaleFilter(),
@@ -149,14 +150,28 @@ var predefinedFilters = [
   ContrastFilter(.5),
   GammaCorrectionFilter(2),
   ConvolutionFilter([
-    0,
-    -1,
-    0,
-    -1,
-    4,
-    -1,
-    0,
-    -1,
-    0,
-  ], name: "Edge Detection", icon: Icons.filter_frames),
+    1, 1, 1,
+    1, 1, 1,
+    1, 1, 1
+  ], name: "Blur", icon: Icons.blur_linear),
+  ConvolutionFilter([
+    0, 1, 0,
+    1, 4, 1,
+    0, 1, 0
+  ], name: "Gaussian Blur", icon: Icons.blur_on),
+  ConvolutionFilter([
+    0, -1, 0,
+    -1, 5, -1,
+    0, -1, 0
+  ], name: "Sharpen", icon: Icons.deblur),
+  ConvolutionFilter([
+    -1, -1, -1,
+    -1, 8, -1,
+    -1, -1, -1
+  ], name: "Edge Detection", icon: Icons.blur_on),
+  ConvolutionFilter([
+    -1, -1, 0,
+    -1, 1, 1,
+    0, 1, 1
+  ], name: "Emboss", icon: Icons.blur_on),
 ];
