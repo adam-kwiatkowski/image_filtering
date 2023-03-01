@@ -35,7 +35,7 @@ class GrayscaleFilter extends ImageFilter {
   }
 }
 
-class BrightnessFilter extends FilterModel {
+class BrightnessFilter extends ParametrizedFilter {
   int brightness;
 
   BrightnessFilter(this.brightness)
@@ -51,17 +51,17 @@ class BrightnessFilter extends FilterModel {
   }
 
   @override
-  List<FilterField> get fields => [
-      FilterField("Brightness", brightness, int, min: -255, max: 255),
+  List<FilterParameter> get fields => [
+      FilterParameter("Brightness", brightness, int, min: -255, max: 255),
   ];
 
   @override
-  FilterModel copyWith(List<FilterField> fields) {
+  ParametrizedFilter copyWith(List<FilterParameter> fields) {
     return BrightnessFilter(fields[0].value);
   }
 }
 
-class ContrastFilter extends ImageFilter {
+class ContrastFilter extends ParametrizedFilter {
   double contrast;
 
   ContrastFilter(this.contrast) : super("Contrast", icon: Icons.contrast);
@@ -79,9 +79,19 @@ class ContrastFilter extends ImageFilter {
           (factor * (pixels[i + 2] - 128) + 128).round().clamp(0, 255);
     }
   }
+
+  @override
+  ParametrizedFilter copyWith(List<FilterParameter> fields) {
+    return ContrastFilter(fields[0].value);
+  }
+
+  @override
+  List<FilterParameter> get fields => [
+      FilterParameter("Contrast", contrast, double, min: -1, max: 1),
+  ];
 }
 
-class GammaCorrectionFilter extends ImageFilter {
+class GammaCorrectionFilter extends ParametrizedFilter {
   double gamma;
 
   GammaCorrectionFilter(this.gamma)
@@ -97,6 +107,16 @@ class GammaCorrectionFilter extends ImageFilter {
           (pow(pixels[i + 2] / 255, 1 / gamma) * 255).round().clamp(0, 255);
     }
   }
+
+  @override
+  ParametrizedFilter copyWith(List<FilterParameter> fields) {
+    return GammaCorrectionFilter(fields[0].value);
+  }
+
+  @override
+  List<FilterParameter> get fields => [
+      FilterParameter("Gamma", gamma, double, min: 0.1, max: 10),
+  ];
 }
 
 class ConvolutionFilter extends ImageFilter {

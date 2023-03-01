@@ -25,7 +25,7 @@ class CompositeFilter extends ImageFilter {
   }
 }
 
-class FilterField<T> {
+class FilterParameter<T> {
   final String label;
   T value;
   final Type type;
@@ -33,7 +33,7 @@ class FilterField<T> {
   final T? min;
   final T? max;
 
-  FilterField(this.label, this.value, this.type, {this.options, this.min, this.max});
+  FilterParameter(this.label, this.value, this.type, {this.options, this.min, this.max});
 
   @override
   String toString() {
@@ -41,10 +41,10 @@ class FilterField<T> {
   }
 }
 
-abstract class FilterModel extends ImageFilter {
-  FilterModel(super.name, {super.icon = Icons.filter});
+abstract class ParametrizedFilter extends ImageFilter {
+  ParametrizedFilter(super.name, {super.icon = Icons.filter});
 
-  List<FilterField> get fields;
+  List<FilterParameter> get fields;
 
-  FilterModel copyWith(List<FilterField> fields);
+  ParametrizedFilter copyWith(List<FilterParameter> fields);
 }

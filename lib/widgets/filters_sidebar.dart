@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_filtering/filters/filters.dart';
 import 'package:provider/provider.dart';
 
@@ -178,7 +179,7 @@ class FiltersSidebar extends StatelessWidget {
             return [
               PopupMenuItem(
                 value: 'edit',
-                enabled: filter is FilterModel,
+                enabled: filter is ParametrizedFilter,
                 child: const Text('Edit'),
               ),
               const PopupMenuItem(
@@ -188,22 +189,21 @@ class FiltersSidebar extends StatelessWidget {
             ];
           }, onSelected: (value) {
             if (value == 'edit') {
-              var model = filter as FilterModel;
+              var model = filter as ParametrizedFilter;
               showDialog(
                   context: context,
                   builder: (context) {
-                    return AlertDialog(
-                      title: Text("Edit ${model.name}"),
-                      content: FilterForm(filter: (filters.list[i] as FilterModel)),
-                      actions: [
-                        TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              print(model.fields);
-                            },
-                            child: const Text("Close"))
-                      ],
-                    );
+                    return SimpleDialog(
+                        title: const Text('Edit filter'),
+                        contentPadding: const EdgeInsets.all(24),
+                        children: [
+                          FilterForm(
+                              fields: model.fields,
+                              onSubmit: (parameters) {
+                                var newFilter = model.copyWith(parameters);
+                                filters.update(newFilter, i);
+                              })
+                        ]);
                   });
             } else if (value == 'remove') {
               filters.remove(filter);
@@ -218,12 +218,15 @@ class FiltersSidebar extends StatelessWidget {
 }
 
 class FilterForm extends StatefulWidget {
-  final FilterModel filter;
+  final List<FilterParameter> fields;
 
   const FilterForm({
     super.key,
-    required this.filter,
+    required this.fields,
+    required this.onSubmit,
   });
+
+  final Function(List<FilterParameter>) onSubmit;
 
   @override
   State<FilterForm> createState() => _FilterFormState();
@@ -234,17 +237,35 @@ class _FilterFormState extends State<FilterForm> {
 
   @override
   Widget build(BuildContext context) {
-    widget.filter.fields[0].value = 0;
     return Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [for (var field in widget.filter.fields) buildField(field)],
+        children: [
+          for (var field in widget.fields) buildField(field),
+          const SizedBox(
+            height: 24,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    widget.onSubmit(widget.fields);
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          )
+        ],
       ),
     );
   }
 
-  buildField(FilterField field) {
+  buildField(FilterParameter field) {
     if (field.type == String) {
       return TextFormField(
         initialValue: field.value,

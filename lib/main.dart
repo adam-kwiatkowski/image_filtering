@@ -16,7 +16,7 @@ import 'models/active_filters_model.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    setWindowMinSize(const Size(900, 600));
+    setWindowMinSize(const Size(910, 600));
   }
   runApp(const MyApp());
 }
