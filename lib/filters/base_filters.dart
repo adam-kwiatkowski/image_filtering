@@ -35,7 +35,7 @@ class GrayscaleFilter extends ImageFilter {
   }
 }
 
-class BrightnessFilter extends ImageFilter {
+class BrightnessFilter extends FilterModel {
   int brightness;
 
   BrightnessFilter(this.brightness)
@@ -48,6 +48,16 @@ class BrightnessFilter extends ImageFilter {
       pixels[i + 1] = (pixels[i + 1] + brightness).clamp(0, 255);
       pixels[i + 2] = (pixels[i + 2] + brightness).clamp(0, 255);
     }
+  }
+
+  @override
+  List<FilterField> get fields => [
+      FilterField("Brightness", brightness, int, min: -255, max: 255),
+  ];
+
+  @override
+  FilterModel copyWith(List<FilterField> fields) {
+    return BrightnessFilter(fields[0].value);
   }
 }
 

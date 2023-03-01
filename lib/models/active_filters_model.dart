@@ -26,6 +26,11 @@ class ActiveFiltersModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void update(ImageFilter filter, int index) {
+    _filters[index] = filter;
+    notifyListeners();
+  }
+
   void clear() {
     _filters.clear();
     notifyListeners();

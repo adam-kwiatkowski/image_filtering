@@ -24,3 +24,27 @@ class CompositeFilter extends ImageFilter {
     }
   }
 }
+
+class FilterField<T> {
+  final String label;
+  T value;
+  final Type type;
+  final List<T>? options;
+  final T? min;
+  final T? max;
+
+  FilterField(this.label, this.value, this.type, {this.options, this.min, this.max});
+
+  @override
+  String toString() {
+    return "$label: $value";
+  }
+}
+
+abstract class FilterModel extends ImageFilter {
+  FilterModel(super.name, {super.icon = Icons.filter});
+
+  List<FilterField> get fields;
+
+  FilterModel copyWith(List<FilterField> fields);
+}
