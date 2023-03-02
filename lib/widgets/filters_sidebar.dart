@@ -242,7 +242,7 @@ class _FilterFormState extends State<FilterForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (var field in widget.fields) buildField(field),
+          for (var field in widget.fields) ParameterField(field: field),
           const SizedBox(
             height: 24,
           ),
@@ -264,47 +264,129 @@ class _FilterFormState extends State<FilterForm> {
       ),
     );
   }
+}
 
-  buildField(FilterParameter field) {
-    if (field.type == String) {
+class ParameterField extends StatefulWidget {
+  const ParameterField({
+    super.key,
+    required this.field,
+  });
+
+  final FilterParameter field;
+
+  @override
+  State<ParameterField> createState() => _ParameterFieldState();
+}
+
+class _ParameterFieldState extends State<ParameterField> {
+  @override
+  Widget build(BuildContext context) {
+    if (widget.field.type == String) {
       return TextFormField(
-        initialValue: field.value,
+        initialValue: widget.field.value,
         decoration: InputDecoration(
-          labelText: field.label,
+          labelText: widget.field.label,
         ),
-        onChanged: (value) {
-          field.value = value;
-        },
+        onChanged: (value) => setState(() {
+          widget.field.value = value;
+        }),
       );
-    } else if (field.type == int) {
-      return TextFormField(
-        initialValue: "${field.value}",
+    } else if (widget.field.type == int) {
+      if (widget.field.min != null && widget.field.max != null) {
+        return Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(widget.field.label),
+              ],
+            ),
+            Row(
+              children: [
+                Text("${widget.field.min}"),
+                Expanded(
+                  child: Slider(
+                    value: (widget.field.value as int).toDouble(),
+                    min: (widget.field.min as int).toDouble(),
+                    max: (widget.field.max as int).toDouble(),
+                    divisions: 100,
+                    label: "${widget.field.value}",
+                    onChanged: (value) => setState(() {
+                      widget.field.value = value.round();
+                    }),
+                  ),
+                ),
+                Text("${widget.field.max}"),
+              ],
+            ),
+          ],
+        );
+      } else {
+        return TextFormField(
+        initialValue: "${widget.field.value}",
         keyboardType: TextInputType.number,
         decoration: InputDecoration(
-          labelText: field.label,
+          labelText: widget.field.label,
         ),
-        onChanged: (value) {
-          field.value = int.parse(value);
-        },
+        onChanged: (value) => setState(() {
+          widget.field.value = int.parse(value);
+        })
       );
-    } else if (field.type == double) {
-      return TextFormField(
-        initialValue: "${field.value}",
-        decoration: InputDecoration(
-          labelText: field.label,
-        ),
-        onChanged: (value) {
-          field.value = double.parse(value);
-        },
-      );
-    } else if (field.type == bool) {
-      return CheckboxListTile(
-        title: Text(field.label),
-        value: field.value,
-        onChanged: (value) {
-          field.value = value;
-        },
+      }
+    } else if (widget.field.type == double) {
+      if (widget.field.min != null && widget.field.max != null) {
+        return Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(widget.field.label),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Text("${widget.field.min}"),
+                Slider(
+                  value: widget.field.value,
+                  min: widget.field.min,
+                  max: widget.field.max,
+                  divisions: 100,
+                  label: (widget.field.value as double).toStringAsFixed(2),
+                  onChanged: (value) => setState(() {
+                    widget.field.value = value;
+                  }),
+                ),
+                Text("${widget.field.max}"),
+              ],
+            ),
+          ],
+        );
+      } else {
+        return TextFormField(
+          initialValue: "${widget.field.value}",
+          decoration: InputDecoration(
+            labelText: widget.field.label,
+          ),
+          onChanged: (value) => setState(() {
+            widget.field.value = double.parse(value);
+          }),
+        );
+      }
+    } else if (widget.field.type == bool) {
+      // switch with a label
+      return Row(
+        children: [
+          Text(widget.field.label),
+          Switch(
+            value: widget.field.value,
+            onChanged: (value) => setState(() {
+              widget.field.value = value;
+            }),
+          ),
+        ],
       );
     }
+    return const Text("Unsupported type");
   }
 }
