@@ -41,19 +41,18 @@ class FilterGallery extends StatelessWidget {
                   .map((e) => Padding(
                         padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
                         child: ElevatedButton(
-                          onPressed: () {
-                            activeFilters.add(e);
-                          },
-                          child: Row(
-                            children: [
-                              Icon(e.icon),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              Text(e.name),
-                            ],
-                          )
-                        ),
+                            onPressed: () {
+                              activeFilters.add(e);
+                            },
+                            child: Row(
+                              children: [
+                                Icon(e.icon),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                Text(e.name),
+                              ],
+                            )),
                       ))
                   .toList(),
             ),

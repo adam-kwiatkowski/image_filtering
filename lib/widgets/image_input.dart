@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 class ImageInput extends StatefulWidget {
   const ImageInput({
     super.key,
+    required this.image,
     required this.onImageSelected,
   });
 
+  final ui.Image? image;
   final Function(XFile) onImageSelected;
 
   @override
@@ -55,7 +57,7 @@ class _ImageInputState extends State<ImageInput> {
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
                 )
               : null,
-          child: _image == null
+          child: widget.image == null
               ? Container(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -69,7 +71,9 @@ class _ImageInputState extends State<ImageInput> {
                     ],
                   ),
                 )
-              : Image.file(File(_image!.path)),
+              : RawImage(
+                  image: widget.image!,
+                ),
         ),
       ),
     );

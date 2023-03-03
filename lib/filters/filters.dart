@@ -33,7 +33,8 @@ class FilterParameter<T> {
   final T? min;
   final T? max;
 
-  FilterParameter(this.label, this.value, this.type, {this.options, this.min, this.max});
+  FilterParameter(this.label, this.value, this.type,
+      {this.options, this.min, this.max});
 
   @override
   String toString() {

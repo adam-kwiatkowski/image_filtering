@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_filtering/filters/filters.dart';
 import 'package:provider/provider.dart';
 
 import '../models/active_filters_model.dart';
 import '../models/filter_gallery_model.dart';
+import 'filter_form.dart';
 
 class FiltersSidebar extends StatelessWidget {
   const FiltersSidebar({
@@ -22,36 +22,52 @@ class FiltersSidebar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
         child: Column(
           children: [
+            const Divider(
+              height: 1,
+              thickness: 1,
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 12, 16),
               child: Row(
                 children: [
                   Text(
-                    'Filters',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    'Active filters',
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
               ),
             ),
+            // const Divider(
+            //   height: 1,
+            //   thickness: 1,
+            // ),
             Expanded(
-                child: ReorderableListView(
-              buildDefaultDragHandles: false,
-              onReorder: activeFilters.reorder,
-              children: [
-                for (int i = 0; i < activeFilters.list.length; i++)
-                  activeFilters.list[i] is CompositeFilter
-                      ? ListTileTheme(
-                          dense: true,
-                          key: ValueKey(i),
-                          child: buildExpansionTile(i, activeFilters),
-                        )
-                      : ListTileTheme(
-                          iconColor:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                          key: ValueKey(i),
-                          child: buildListTile(i, activeFilters, context)),
-              ],
-            )),
+                child: activeFilters.list.isNotEmpty
+                    ? ReorderableListView(
+                        buildDefaultDragHandles: false,
+                        onReorder: activeFilters.reorder,
+                        children: [
+                          for (int i = 0; i < activeFilters.list.length; i++)
+                            activeFilters.list[i] is CompositeFilter
+                                ? ListTileTheme(
+                                    dense: true,
+                                    key: ValueKey(i),
+                                    child: buildExpansionTile(i, activeFilters),
+                                  )
+                                : ListTileTheme(
+                                    iconColor: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                    key: ValueKey(i),
+                                    child: buildListTile(
+                                        i, activeFilters, context)),
+                        ],
+                      )
+                    : const Center(
+                        child: Text(
+                          'Click on a filter to add it',
+                        ),
+                      )),
             Column(
               children: [
                 const Divider(
@@ -214,179 +230,5 @@ class FiltersSidebar extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class FilterForm extends StatefulWidget {
-  final List<FilterParameter> fields;
-
-  const FilterForm({
-    super.key,
-    required this.fields,
-    required this.onSubmit,
-  });
-
-  final Function(List<FilterParameter>) onSubmit;
-
-  @override
-  State<FilterForm> createState() => _FilterFormState();
-}
-
-class _FilterFormState extends State<FilterForm> {
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var field in widget.fields) ParameterField(field: field),
-          const SizedBox(
-            height: 24,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    widget.onSubmit(widget.fields);
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: const Text('Apply'),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class ParameterField extends StatefulWidget {
-  const ParameterField({
-    super.key,
-    required this.field,
-  });
-
-  final FilterParameter field;
-
-  @override
-  State<ParameterField> createState() => _ParameterFieldState();
-}
-
-class _ParameterFieldState extends State<ParameterField> {
-  @override
-  Widget build(BuildContext context) {
-    if (widget.field.type == String) {
-      return TextFormField(
-        initialValue: widget.field.value,
-        decoration: InputDecoration(
-          labelText: widget.field.label,
-        ),
-        onChanged: (value) => setState(() {
-          widget.field.value = value;
-        }),
-      );
-    } else if (widget.field.type == int) {
-      if (widget.field.min != null && widget.field.max != null) {
-        return Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(widget.field.label),
-              ],
-            ),
-            Row(
-              children: [
-                Text("${widget.field.min}"),
-                Expanded(
-                  child: Slider(
-                    value: (widget.field.value as int).toDouble(),
-                    min: (widget.field.min as int).toDouble(),
-                    max: (widget.field.max as int).toDouble(),
-                    divisions: 100,
-                    label: "${widget.field.value}",
-                    onChanged: (value) => setState(() {
-                      widget.field.value = value.round();
-                    }),
-                  ),
-                ),
-                Text("${widget.field.max}"),
-              ],
-            ),
-          ],
-        );
-      } else {
-        return TextFormField(
-        initialValue: "${widget.field.value}",
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: widget.field.label,
-        ),
-        onChanged: (value) => setState(() {
-          widget.field.value = int.parse(value);
-        })
-      );
-      }
-    } else if (widget.field.type == double) {
-      if (widget.field.min != null && widget.field.max != null) {
-        return Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(widget.field.label),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Text("${widget.field.min}"),
-                Slider(
-                  value: widget.field.value,
-                  min: widget.field.min,
-                  max: widget.field.max,
-                  divisions: 100,
-                  label: (widget.field.value as double).toStringAsFixed(2),
-                  onChanged: (value) => setState(() {
-                    widget.field.value = value;
-                  }),
-                ),
-                Text("${widget.field.max}"),
-              ],
-            ),
-          ],
-        );
-      } else {
-        return TextFormField(
-          initialValue: "${widget.field.value}",
-          decoration: InputDecoration(
-            labelText: widget.field.label,
-          ),
-          onChanged: (value) => setState(() {
-            widget.field.value = double.parse(value);
-          }),
-        );
-      }
-    } else if (widget.field.type == bool) {
-      // switch with a label
-      return Row(
-        children: [
-          Text(widget.field.label),
-          Switch(
-            value: widget.field.value,
-            onChanged: (value) => setState(() {
-              widget.field.value = value;
-            }),
-          ),
-        ],
-      );
-    }
-    return const Text("Unsupported type");
   }
 }

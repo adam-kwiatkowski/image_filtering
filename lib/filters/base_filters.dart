@@ -52,8 +52,8 @@ class BrightnessFilter extends ParametrizedFilter {
 
   @override
   List<FilterParameter> get fields => [
-    FilterParameter("Brightness", brightness, int, min: -255, max: 255),
-  ];
+        FilterParameter("Brightness", brightness, int, min: -255, max: 255),
+      ];
 
   @override
   ParametrizedFilter copyWith(List<FilterParameter> fields) {
@@ -115,7 +115,7 @@ class GammaCorrectionFilter extends ParametrizedFilter {
 
   @override
   List<FilterParameter> get fields => [
-        FilterParameter("Gamma", gamma, double, min: 0.1, max: 10.0),
+        FilterParameter("Gamma", gamma, double, min: 0.1, max: 2.2),
       ];
 }
 
@@ -178,11 +178,11 @@ var predefinedFilters = [
   GrayscaleFilter(),
   BrightnessFilter(50),
   ContrastFilter(.5),
-  GammaCorrectionFilter(2.0),
+  GammaCorrectionFilter(1.5),
   ConvolutionFilter([1, 1, 1, 1, 1, 1, 1, 1, 1],
-      name: "Blur", icon: Icons.blur_linear),
-  ConvolutionFilter([0, 1, 0, 1, 4, 1, 0, 1, 0],
-      name: "Gaussian Blur", icon: Icons.blur_on),
+      divisor: 9, name: "Blur", icon: Icons.blur_linear),
+  ConvolutionFilter([1, 2, 1, 2, 4, 2, 1, 2, 1],
+      divisor: 16, name: "Gaussian Blur", icon: Icons.blur_on),
   ConvolutionFilter([0, -1, 0, -1, 5, -1, 0, -1, 0],
       name: "Sharpen", icon: Icons.deblur),
   ConvolutionFilter([-1, -1, -1, -1, 8, -1, -1, -1, -1],
