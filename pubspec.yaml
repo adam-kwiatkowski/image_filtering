@@ -38,6 +38,11 @@ dependencies:
   desktop_drop: ^0.4.1
   cross_file: ^0.3.3+4
   provider: ^6.0.5
+  file_picker: ^5.2.5
+  window_size:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding.git
+      path: plugins/window_size
 
 dev_dependencies:
   flutter_test:
