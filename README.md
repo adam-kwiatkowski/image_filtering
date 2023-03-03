@@ -1,16 +1,5 @@
-# image_filtering
+# Image filtering
 
-Apply filters to images.
+Image filtering app developed using flutter. This project allows for applying functional and convolutional filters to images
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<img width="1440" alt="image" src="https://user-images.githubusercontent.com/22380943/222823730-5e740d58-bc58-4bdf-96c4-9a7be0ccf798.png">
