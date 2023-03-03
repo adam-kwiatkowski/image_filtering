@@ -1,3 +1,4 @@
+![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)
 # Image filtering
 
 Image filtering app developed using flutter. This project allows for applying functional and convolutional filters to images
