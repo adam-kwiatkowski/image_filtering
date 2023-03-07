@@ -119,74 +119,75 @@ class GammaCorrectionFilter extends ParametrizedFilter {
       ];
 }
 
-class ConvolutionFilter extends ImageFilter {
-  List<double> kernel;
-  int kernelSize;
-  double divisor;
-  double bias;
+class ConvolutionFilter extends ParametrizedFilter {
+  Kernel kernel;
 
   ConvolutionFilter(this.kernel,
-      {this.divisor = 1,
-      this.bias = 0,
-      name = "Convolution",
-      icon = Icons.blur_on})
-      : kernelSize = sqrt(kernel.length).round(),
-        super(name, icon: icon);
+      {String name = "Convolution filter", IconData icon = Icons.filter})
+      : super(name, icon: icon);
 
   @override
   void apply(Uint8List pixels, int width, int height) {
-    var newPixels = Uint8List.fromList(pixels);
+    var result = Uint8List.fromList(pixels);
 
-    for (var i = 0; i < pixels.lengthInBytes; i += 4) {
-      var x = (i / 4) % width;
-      var y = (i / 4) ~/ width;
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        var r = 0.0;
+        var g = 0.0;
+        var b = 0.0;
 
-      var r = 0.0;
-      var g = 0.0;
-      var b = 0.0;
+        for (var ky = 0; ky < kernel.size!.height; ky++) {
+          for (var kx = 0; kx < kernel.size!.width; kx++) {
+            var px = x + kx - kernel.anchor!.x;
+            var py = y + ky - kernel.anchor!.y;
 
-      for (var ky = 0; ky < kernelSize; ky++) {
-        for (var kx = 0; kx < kernelSize; kx++) {
-          var dx = x + kx - kernelSize ~/ 2;
-          var dy = y + ky - kernelSize ~/ 2;
+            if (px >= 0 && px < width && py >= 0 && py < height) {
+              var i = (py * width + px) * 4;
+              var k = kernel.values[ky * kernel.size!.width + kx];
 
-          if (dx < 0 || dx >= width || dy < 0 || dy >= height) {
-            continue;
+              r += pixels[i] * k;
+              g += pixels[i + 1] * k;
+              b += pixels[i + 2] * k;
+            }
           }
-
-          var pixelIndex = ((dy * width + dx) * 4).round();
-          var kernelIndex = ky * kernelSize + kx;
-
-          r += pixels[pixelIndex] * kernel[kernelIndex];
-          g += pixels[pixelIndex + 1] * kernel[kernelIndex];
-          b += pixels[pixelIndex + 2] * kernel[kernelIndex];
         }
-      }
 
-      newPixels[i] = (r / divisor + bias).round().clamp(0, 255);
-      newPixels[i + 1] = (g / divisor + bias).round().clamp(0, 255);
-      newPixels[i + 2] = (b / divisor + bias).round().clamp(0, 255);
+        var i = (y * width + x) * 4;
+        result[i] = (r / kernel.divisor!).round().clamp(0, 255);
+        result[i + 1] = (g / kernel.divisor!).round().clamp(0, 255);
+        result[i + 2] = (b / kernel.divisor!).round().clamp(0, 255);
+      }
     }
 
-    pixels.setAll(0, newPixels);
+    pixels.setAll(0, result);
   }
+
+  @override
+  ParametrizedFilter copyWith(List<FilterParameter> fields) {
+    return ConvolutionFilter(fields[0].value, name: name, icon: icon);
+  }
+
+  @override
+  List<FilterParameter> get fields =>
+      [FilterParameter("Kernel", kernel, Kernel)];
 }
 
-// invert, grayscale, brightness, contrast, gamma correction, blur, gaussian blur, sharpen, edge detection, emboss
 var predefinedFilters = [
   InvertFilter(),
   GrayscaleFilter(),
   BrightnessFilter(50),
   ContrastFilter(.5),
   GammaCorrectionFilter(1.5),
-  ConvolutionFilter([1, 1, 1, 1, 1, 1, 1, 1, 1],
-      divisor: 9, name: "Blur", icon: Icons.blur_linear),
-  ConvolutionFilter([1, 2, 1, 2, 4, 2, 1, 2, 1],
-      divisor: 16, name: "Gaussian Blur", icon: Icons.blur_on),
-  ConvolutionFilter([0, -1, 0, -1, 5, -1, 0, -1, 0],
+  ConvolutionFilter(Kernel([1, 1, 1, 1, 1, 1, 1, 1, 1]),
+      name: "Blur", icon: Icons.blur_linear),
+  ConvolutionFilter(Kernel([1, 2, 1, 2, 4, 2, 1, 2, 1]),
+      name: "Gaussian Blur", icon: Icons.blur_on),
+  ConvolutionFilter(Kernel([0, -1, 0, -1, 5, -1, 0, -1, 0]),
       name: "Sharpen", icon: Icons.deblur),
-  ConvolutionFilter([-1, -1, -1, -1, 8, -1, -1, -1, -1],
+  ConvolutionFilter(Kernel([-1, -1, -1, -1, 8, -1, -1, -1, -1]),
       name: "Edge Detection", icon: Icons.blur_on),
-  ConvolutionFilter([-1, -1, 0, -1, 1, 1, 0, 1, 1],
+  ConvolutionFilter(Kernel([-1, -1, 0, -1, 1, 1, 0, 1, 1]),
       name: "Emboss", icon: Icons.blur_on),
+  ConvolutionFilter(Kernel([0, 0, 0, 0, 1, 0, 0, 0, 0]),
+      name: "Identity", icon: Icons.filter_none),
 ];

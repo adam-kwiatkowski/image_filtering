@@ -71,8 +71,10 @@ class _ImageInputState extends State<ImageInput> {
                     ],
                   ),
                 )
-              : RawImage(
-                  image: widget.image!,
+              : InteractiveViewer(
+                  child: RawImage(
+                    image: widget.image!,
+                  ),
                 ),
         ),
       ),

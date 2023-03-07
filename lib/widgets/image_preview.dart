@@ -27,8 +27,10 @@ class ImagePreview extends StatelessWidget {
                   Text('Filter results will appear here'),
                 ],
               )
-            : RawImage(
-                image: _image!,
+            : InteractiveViewer(
+                child: RawImage(
+                  image: _image!,
+                ),
               ),
       ),
     );
