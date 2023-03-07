@@ -37,37 +37,25 @@ class FiltersSidebar extends StatelessWidget {
                 ],
               ),
             ),
-            // const Divider(
-            //   height: 1,
-            //   thickness: 1,
-            // ),
             Expanded(
-                child: activeFilters.list.isNotEmpty
-                    ? ReorderableListView(
-                        buildDefaultDragHandles: false,
-                        onReorder: activeFilters.reorder,
-                        children: [
-                          for (int i = 0; i < activeFilters.list.length; i++)
-                            activeFilters.list[i] is CompositeFilter
-                                ? ListTileTheme(
-                                    dense: true,
-                                    key: ValueKey(i),
-                                    child: buildExpansionTile(i, activeFilters),
-                                  )
-                                : ListTileTheme(
-                                    iconColor: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                    key: ValueKey(i),
-                                    child: buildListTile(
-                                        i, activeFilters, context)),
-                        ],
-                      )
-                    : const Center(
-                        child: Text(
-                          'Click on a filter to add it',
-                        ),
-                      )),
+                child: ReorderableListView(
+              buildDefaultDragHandles: false,
+              onReorder: activeFilters.reorder,
+              children: [
+                for (int i = 0; i < activeFilters.list.length; i++)
+                  activeFilters.list[i] is CompositeFilter
+                      ? ListTileTheme(
+                          dense: true,
+                          key: ValueKey(i),
+                          child: buildExpansionTile(i, activeFilters),
+                        )
+                      : ListTileTheme(
+                          iconColor:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                          key: ValueKey(i),
+                          child: buildListTile(i, activeFilters, context)),
+              ],
+            )),
             Column(
               children: [
                 const Divider(

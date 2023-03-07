@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:image_filtering/filters/filters.dart';
 
@@ -179,6 +181,213 @@ class _ParameterFieldState extends State<ParameterField> {
           ),
         ],
       );
+    } else if (widget.field.type == Kernel) {
+      var kernel = widget.field.value as Kernel;
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Kernel values"),
+                SizedBox(
+                  width: 350,
+                  child: Table(
+                    children: [
+                      for (int i = 0; i < kernel.size!.height; i++)
+                        TableRow(children: [
+                          for (int j = 0; j < kernel.size!.width; j++)
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    contentPadding:
+                                        const EdgeInsets.fromLTRB(8, 10, 8, 10),
+                                    border: const OutlineInputBorder(),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: (i == kernel.anchor!.x &&
+                                                j == kernel.anchor!.y)
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .outline
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .outlineVariant,
+                                      ),
+                                    ),
+                                    isDense: true,
+                                  ),
+                                  controller: TextEditingController(
+                                      text: kernel
+                                          .values[i * kernel.size!.width + j]
+                                          .toString()),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) => setState(() {
+                                    var newList = List<num>.from(kernel.values);
+                                    try {
+                                      newList[i * kernel.size!.width + j] =
+                                          double.parse(value);
+                                    } catch (e) {
+                                      newList[i * kernel.size!.width + j] = 0.0;
+                                    }
+                                    widget.field.value =
+                                        kernel.copyWith(values: newList);
+                                  }),
+                                ),
+                              ),
+                            )
+                        ])
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Anchor"),
+                SizedBox(
+                  width: 126,
+                  child: Table(
+                    defaultColumnWidth: const FixedColumnWidth(10),
+                    children: [
+                      for (int i = 0; i < kernel.size!.height; i++)
+                        TableRow(children: [
+                          for (int j = 0; j < kernel.size!.width; j++)
+                            TableCell(
+                              child: GestureDetector(
+                                onTap: () => setState(() {
+                                  widget.field.value =
+                                      kernel.copyWith(anchor: Point(i, j));
+                                }),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: Container(
+                                    width: 10,
+                                    height: 10,
+                                    color: (i == kernel.anchor!.x &&
+                                            j == kernel.anchor!.y)
+                                        ? Theme.of(context).colorScheme.outline
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .outlineVariant,
+                                  ),
+                                ),
+                              ),
+                            )
+                        ]),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        Row(mainAxisSize: MainAxisSize.max, children: [
+          // Slider(
+          //   value: kernel.size!.width.toDouble(),
+          //   onChanged: (double value) => setState(() {
+          //     widget.field.value = kernel.copyWith(
+          //         size: KernelSize(value.round(), kernel.size!.height),
+          //         values: List.generate(
+          //             value.round() * kernel.size!.height, (index) => 0));
+          //   }),
+          //   min: 1,
+          //   max: 9,
+          //   divisions: 8,
+          //   label: "${kernel.size!.width}",
+          // ),
+          SizedBox(
+            width: 50,
+            child: TextField(
+              decoration: const InputDecoration(
+                labelText: "Width",
+              ),
+              controller: TextEditingController(text: "${kernel.size!.width}"),
+              keyboardType: TextInputType.number,
+              onChanged: (value) => setState(() {
+                try {
+                  var width = int.parse(value).clamp(1, 9);
+                  widget.field.value = kernel.copyWith(
+                      size: KernelSize(width, kernel.size!.height),
+                      values: List.generate(
+                          width * kernel.size!.height, (index) => 0));
+                } catch (e) {
+                  widget.field.value = kernel.copyWith(
+                      size: KernelSize(1, kernel.size!.height),
+                      values:
+                          List.generate(1 * kernel.size!.height, (index) => 0));
+                }
+              }),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Text("x"),
+          ),
+          SizedBox(
+            width: 50,
+            child: TextField(
+              decoration: const InputDecoration(
+                labelText: "Height",
+              ),
+              controller: TextEditingController(text: "${kernel.size!.height}"),
+              keyboardType: TextInputType.number,
+              onChanged: (value) => setState(() {
+                try {
+                  var height = int.parse(value).clamp(1, 9);
+                  widget.field.value = kernel.copyWith(
+                      size: KernelSize(kernel.size!.width, height),
+                      values: List.generate(
+                          kernel.size!.width * height, (index) => 0));
+                } catch (e) {
+                  widget.field.value = kernel.copyWith(
+                      size: KernelSize(kernel.size!.width, 1),
+                      values:
+                          List.generate(kernel.size!.width * 1, (index) => 0));
+                }
+              }),
+            ),
+          ),
+        ]),
+        Row(
+          children: [
+            SizedBox(
+              width: 100,
+              child: TextField(
+                decoration: const InputDecoration(
+                  labelText: "Divisor",
+                ),
+                controller: TextEditingController(
+                    text: "${kernel.divisor == 0 ? "" : kernel.divisor}"),
+                keyboardType: TextInputType.number,
+                onChanged: (value) => setState(() {
+                  try {
+                    widget.field.value =
+                        kernel.copyWith(divisor: double.parse(value));
+                  } catch (e) {
+                    widget.field.value = kernel.copyWith(divisor: 0.0);
+                  }
+                }),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: OutlinedButton(
+                child: const Text("Auto"),
+                onPressed: () => setState(() {
+                  widget.field.value = kernel.copyWith(
+                      divisor: kernel.values.reduce((a, b) => a + b));
+                }),
+              ),
+            )
+          ],
+        ),
+      ]);
     }
     return const Text("Unsupported type");
   }
