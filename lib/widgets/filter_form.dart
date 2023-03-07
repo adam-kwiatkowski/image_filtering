@@ -35,7 +35,7 @@ class _FilterFormState extends State<FilterForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              ElevatedButton(
+              TextButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     widget.onSubmit(widget.fields);
@@ -288,19 +288,6 @@ class _ParameterFieldState extends State<ParameterField> {
           ],
         ),
         Row(mainAxisSize: MainAxisSize.max, children: [
-          // Slider(
-          //   value: kernel.size!.width.toDouble(),
-          //   onChanged: (double value) => setState(() {
-          //     widget.field.value = kernel.copyWith(
-          //         size: KernelSize(value.round(), kernel.size!.height),
-          //         values: List.generate(
-          //             value.round() * kernel.size!.height, (index) => 0));
-          //   }),
-          //   min: 1,
-          //   max: 9,
-          //   divisions: 8,
-          //   label: "${kernel.size!.width}",
-          // ),
           SizedBox(
             width: 50,
             child: TextField(
@@ -354,6 +341,25 @@ class _ParameterFieldState extends State<ParameterField> {
             ),
           ),
         ]),
+        Row(children: [
+          SizedBox(
+              width: 100,
+              child: TextField(
+                decoration: const InputDecoration(
+                  labelText: "Offset",
+                ),
+                controller: TextEditingController(text: "${kernel.offset!}"),
+                keyboardType: TextInputType.number,
+                onChanged: (value) => setState(() {
+                  try {
+                    widget.field.value =
+                        kernel.copyWith(offset: double.parse(value));
+                  } catch (e) {
+                    widget.field.value = kernel.copyWith(offset: 0.0);
+                  }
+                }),
+              ))
+        ]),
         Row(
           children: [
             SizedBox(
@@ -377,7 +383,7 @@ class _ParameterFieldState extends State<ParameterField> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: OutlinedButton(
+              child: TextButton(
                 child: const Text("Auto"),
                 onPressed: () => setState(() {
                   widget.field.value = kernel.copyWith(

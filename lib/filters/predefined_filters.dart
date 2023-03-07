@@ -36,7 +36,7 @@ class GrayscaleFilter extends ImageFilter {
 }
 
 class BrightnessFilter extends ParametrizedFilter {
-  int brightness;
+  final int brightness;
 
   BrightnessFilter(this.brightness)
       : super("Brightness", icon: Icons.brightness_6);
@@ -62,7 +62,7 @@ class BrightnessFilter extends ParametrizedFilter {
 }
 
 class ContrastFilter extends ParametrizedFilter {
-  double contrast;
+  final double contrast;
 
   ContrastFilter(this.contrast) : super("Contrast", icon: Icons.contrast);
 
@@ -92,7 +92,7 @@ class ContrastFilter extends ParametrizedFilter {
 }
 
 class GammaCorrectionFilter extends ParametrizedFilter {
-  double gamma;
+  final double gamma;
 
   GammaCorrectionFilter(this.gamma)
       : super("Gamma Correction", icon: Icons.tonality);
@@ -120,7 +120,7 @@ class GammaCorrectionFilter extends ParametrizedFilter {
 }
 
 class ConvolutionFilter extends ParametrizedFilter {
-  Kernel kernel;
+  final Kernel kernel;
 
   ConvolutionFilter(this.kernel,
       {String name = "Convolution filter", IconData icon = Icons.filter})
@@ -128,38 +128,7 @@ class ConvolutionFilter extends ParametrizedFilter {
 
   @override
   void apply(Uint8List pixels, int width, int height) {
-    var result = Uint8List.fromList(pixels);
-
-    for (var y = 0; y < height; y++) {
-      for (var x = 0; x < width; x++) {
-        var r = 0.0;
-        var g = 0.0;
-        var b = 0.0;
-
-        for (var ky = 0; ky < kernel.size!.height; ky++) {
-          for (var kx = 0; kx < kernel.size!.width; kx++) {
-            var px = x + kx - kernel.anchor!.x;
-            var py = y + ky - kernel.anchor!.y;
-
-            if (px >= 0 && px < width && py >= 0 && py < height) {
-              var i = (py * width + px) * 4;
-              var k = kernel.values[ky * kernel.size!.width + kx];
-
-              r += pixels[i] * k;
-              g += pixels[i + 1] * k;
-              b += pixels[i + 2] * k;
-            }
-          }
-        }
-
-        var i = (y * width + x) * 4;
-        result[i] = (r / kernel.divisor!).round().clamp(0, 255);
-        result[i + 1] = (g / kernel.divisor!).round().clamp(0, 255);
-        result[i + 2] = (b / kernel.divisor!).round().clamp(0, 255);
-      }
-    }
-
-    pixels.setAll(0, result);
+    kernelConvolution(pixels, width, height, kernel);
   }
 
   @override
@@ -170,6 +139,55 @@ class ConvolutionFilter extends ParametrizedFilter {
   @override
   List<FilterParameter> get fields =>
       [FilterParameter("Kernel", kernel, Kernel)];
+}
+
+class BidirectionalEdgeDetection extends ParametrizedFilter {
+  final int M;
+
+  BidirectionalEdgeDetection(this.M)
+      : super("Bidirectional Edge Detection", icon: Icons.filter);
+
+  @override
+  void apply(Uint8List pixels, int width, int height) {
+    var pixels1 = Uint8List.fromList(pixels);
+    var pixels2 = Uint8List.fromList(pixels);
+    kernelConvolution(
+        pixels1, width, height, Kernel([0, -1, 0, 0, 1, 0, 0, 0, 0]),
+        abs: true);
+    kernelConvolution(
+        pixels2, width, height, Kernel([0, 0, 0, -1, 1, 0, 0, 0, 0]),
+        abs: true);
+
+    for (var i = 0; i < pixels.lengthInBytes; i += 4) {
+      var values = [
+        pixels1[i],
+        pixels1[i + 1],
+        pixels1[i + 2],
+        pixels2[i],
+        pixels2[i + 1],
+        pixels2[i + 2],
+      ];
+
+      var newValue = 0;
+      for (var val in values) {
+        if (val > M) newValue = 255;
+      }
+
+      pixels[i] = newValue;
+      pixels[i + 1] = newValue;
+      pixels[i + 2] = newValue;
+    }
+  }
+
+  @override
+  ParametrizedFilter copyWith(List<FilterParameter> fields) {
+    return BidirectionalEdgeDetection(fields[0].value);
+  }
+
+  @override
+  List<FilterParameter> get fields => [
+        FilterParameter("M", M, int, min: 0, max: 255),
+      ];
 }
 
 var predefinedFilters = [
@@ -190,4 +208,5 @@ var predefinedFilters = [
       name: "Emboss", icon: Icons.blur_on),
   ConvolutionFilter(Kernel([0, 0, 0, 0, 1, 0, 0, 0, 0]),
       name: "Identity", icon: Icons.filter_none),
+  BidirectionalEdgeDetection(40),
 ];

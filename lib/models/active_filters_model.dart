@@ -37,6 +37,12 @@ class ActiveFiltersModel extends ChangeNotifier {
   }
 
   ImageFilter merge() {
+    if (_filters.length == 1) {
+      if (_filters[0] is ParametrizedFilter) {
+        var filter = _filters[0] as ParametrizedFilter;
+        return filter.copyWith(filter.fields);
+      }
+    }
     List<ImageFilter> filters = [];
     for (var i = 0; i < _filters.length; i++) {
       if (_filters[i] is CompositeFilter) {

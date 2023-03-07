@@ -5,7 +5,7 @@ import 'package:image_filtering/filters/filters.dart';
 import '../filters/predefined_filters.dart';
 
 class FilterGalleryModel extends ChangeNotifier {
-  final List<ImageFilter> _filters = predefinedFilters;
+  final List<ImageFilter> _filters = List.from(predefinedFilters);
 
   List<ImageFilter> get list => _filters;
 
