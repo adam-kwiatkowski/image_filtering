@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_filtering/filters/filters.dart';
+import 'package:image_filtering/filters/predefined_filters.dart';
 import 'package:image_filtering/models/filter_gallery_model.dart';
 import 'package:provider/provider.dart';
 
@@ -41,6 +42,28 @@ class FilterGallery extends StatelessWidget {
                   .map((e) => Padding(
                         padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
                         child: ElevatedButton(
+                            onLongPress: () {
+                              if (!predefinedFilters.contains(e)) {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                          title: Text('Remove ${e.name}?'),
+                                          actions: [
+                                            TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: const Text('Cancel')),
+                                            TextButton(
+                                                onPressed: () {
+                                                  filterGallery.remove(e);
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: const Text('Remove')),
+                                          ],
+                                        ));
+                              }
+                            },
                             onPressed: () {
                               activeFilters.add(e);
                             },
