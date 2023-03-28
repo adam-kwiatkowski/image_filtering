@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:cross_file/cross_file.dart';
@@ -16,6 +17,7 @@ import 'widgets/filter_gallery.dart';
 import 'widgets/filters_sidebar.dart';
 import 'widgets/image_input.dart';
 import 'widgets/image_preview.dart';
+import 'utilities/color_wheel.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,6 +68,20 @@ class _MyHomePageState extends State<MyHomePage> {
   ui.Image? _originalImage;
   ui.Image? _filteredImage;
 
+  void _handleImageGenerated(Uint8List pixels, int width, int height) async {
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(pixels, width, height, ui.PixelFormat.rgba8888,
+        (image) => completer.complete(image));
+    final image = await completer.future;
+
+    setState(() {
+      _originalImage = image;
+      _filteredImage = image;
+    });
+
+    _handleFiltersChanged();
+  }
+
   void _handleImageSelected(XFile imageFile) async {
     final bytes = await imageFile.readAsBytes();
     decodeImageFromList(bytes).then((value) => {
@@ -112,6 +128,21 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.color_lens),
+            tooltip: 'Generate a color wheel',
+            onPressed: () async {
+              const int diameter = 500;
+              compute(generateImage, {
+                'width': diameter,
+                'height': diameter,
+              }).then((value) => {
+                    setState(() {
+                      _handleImageGenerated(value, diameter, diameter);
+                    })
+              });
+            }
+          ),
           IconButton(
               icon: const Icon(Icons.file_open),
               tooltip: 'Open file',
@@ -228,6 +259,13 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     });
   }
+}
+
+Uint8List generateImage(Map<String, dynamic> args) {
+  int width = args['width'];
+  int height = args['height'];
+
+  return generateColorWheel(max(width, height));
 }
 
 Uint8List applyFilters(Map<String, dynamic> args) {
