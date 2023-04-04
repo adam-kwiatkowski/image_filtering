@@ -190,6 +190,174 @@ class BidirectionalEdgeDetection extends ParametrizedFilter {
       ];
 }
 
+class AverageDitheringFilter extends ParametrizedFilter {
+  final int K;
+
+  AverageDitheringFilter(this.K)
+      : super("Average Dithering", icon: Icons.grain);
+
+  @override
+  void apply(Uint8List pixels, int width, int height) {
+    for (var c = 0; c < 3; c++) {
+      var avg = 0;
+      for (var i = 0; i < pixels.lengthInBytes; i += 4) {
+        avg += pixels[i + c];
+      }
+      avg ~/= pixels.lengthInBytes ~/ 4;
+
+      var levels = [0, avg, 255];
+      var l = 0;
+      for (var i = 0; i < K - 2; i++) {
+        levels.insert(l + 1, (levels[l] + levels[l + 1]) ~/ 2);
+        l += 2;
+        if (l >= levels.length - 1) l = 0;
+      }
+
+      for (var i = 0; i < pixels.lengthInBytes; i += 4) {
+        var val = pixels[i + c];
+        if (val < levels[1]) {
+          pixels[i + c] = levels[0];
+        } else if (val > levels[levels.length - 2]) {
+          pixels[i + c] = levels[levels.length - 1];
+        } else {
+          for (var j = 1; j < levels.length - 1; j++) {
+            if (val >= levels[j] && val < levels[j + 1]) {
+              pixels[i + c] = levels[j];
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  ParametrizedFilter copyWith(List<FilterParameter> fields) {
+    return AverageDitheringFilter(fields[0].value);
+  }
+
+  @override
+  List<FilterParameter> get fields => [
+        FilterParameter("K", K, int),
+      ];
+}
+
+class MedianCutFilter extends ParametrizedFilter {
+  final int K;
+
+  MedianCutFilter(this.K) : super("Median Cut", icon: Icons.area_chart);
+
+  @override
+  void apply(Uint8List pixels, int width, int height) {
+    var colors = pixelsToColor(pixels);
+    var colorMap = medianCut(colors, K).toSet().toList();
+    var quantizedPixels = replacePixelsWithColorMap(pixels, colorMap);
+    pixels.setAll(0, quantizedPixels);
+  }
+
+  List<Color> pixelsToColor(Uint8List pixels) {
+    var colors = <Color>[];
+    for (var i = 0; i < pixels.lengthInBytes; i += 4) {
+      colors.add(Color.fromARGB(
+          pixels[i + 3], pixels[i], pixels[i + 1], pixels[i + 2]));
+    }
+    return colors;
+  }
+
+  Uint8List colorsToPixels(List<Color> colors) {
+    var pixels = Uint8List(colors.length * 4);
+    for (var i = 0; i < colors.length; i++) {
+      var color = colors[i];
+      pixels[i * 4] = color.red;
+      pixels[i * 4 + 1] = color.green;
+      pixels[i * 4 + 2] = color.blue;
+      pixels[i * 4 + 3] = color.alpha;
+    }
+    return pixels;
+  }
+
+  List<Color> quantize(List<Color> colors) {
+    var r = colors.map((c) => c.red).reduce((a, b) => a + b) ~/ colors.length;
+    var g = colors.map((c) => c.green).reduce((a, b) => a + b) ~/ colors.length;
+    var b = colors.map((c) => c.blue).reduce((a, b) => a + b) ~/ colors.length;
+    return List.generate(
+        colors.length, (index) => Color.fromARGB(255, r, g, b));
+  }
+
+  Uint8List replacePixelsWithColorMap(Uint8List pixels, List<Color> colorMap) {
+    var newPixels = Uint8List(pixels.length);
+    for (var i = 0; i < pixels.length; i += 4) {
+      var color = Color.fromARGB(
+          pixels[i + 3], pixels[i], pixels[i + 1], pixels[i + 2]);
+      var closestColor = findClosestColor(colorMap, color);
+      newPixels[i] = closestColor.red;
+      newPixels[i + 1] = closestColor.green;
+      newPixels[i + 2] = closestColor.blue;
+      newPixels[i + 3] = closestColor.alpha;
+    }
+    return newPixels;
+  }
+
+  Color findClosestColor(List<Color> colorMap, Color color) {
+    var minDistance = double.infinity;
+    var closestColor = color;
+    for (var mapColor in colorMap) {
+      var distance = colorDistance(color, mapColor);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestColor = mapColor;
+      }
+    }
+    return closestColor;
+  }
+
+  double colorDistance(Color a, Color b) {
+    var dr = a.red - b.red;
+    var dg = a.green - b.green;
+    var db = a.blue - b.blue;
+    return sqrt(dr * dr + dg * dg + db * db);
+  }
+
+  List<Color> medianCut(List<Color> colors, int k) {
+    if (k == 1) return quantize(colors);
+
+    var rRange = colors.map((c) => c.red).reduce((a, b) => max(a, b)) -
+        colors.map((c) => c.red).reduce((a, b) => min(a, b));
+    var gRange = colors.map((c) => c.green).reduce((a, b) => max(a, b)) -
+        colors.map((c) => c.green).reduce((a, b) => min(a, b));
+    var bRange = colors.map((c) => c.blue).reduce((a, b) => max(a, b)) -
+        colors.map((c) => c.blue).reduce((a, b) => min(a, b));
+
+    var maxRange = max(rRange, max(gRange, bRange));
+
+    var sortedColors = colors;
+    if (maxRange == rRange) {
+      sortedColors.sort((a, b) => a.red.compareTo(b.red));
+    } else if (maxRange == gRange) {
+      sortedColors.sort((a, b) => a.green.compareTo(b.green));
+    } else {
+      sortedColors.sort((a, b) => a.blue.compareTo(b.blue));
+    }
+
+    var half = sortedColors.length ~/ 2;
+
+    var colors1 = medianCut(sortedColors.sublist(0, half), k ~/ 2);
+    var colors2 = medianCut(sortedColors.sublist(half), k ~/ 2);
+
+    return colors1 + colors2;
+  }
+
+  @override
+  ParametrizedFilter copyWith(List<FilterParameter> fields) {
+    return MedianCutFilter(fields[0].value);
+  }
+
+  @override
+  List<FilterParameter> get fields => [
+        FilterParameter("K", K, int),
+      ];
+}
+
 var predefinedFilters = [
   InvertFilter(),
   GrayscaleFilter(),
@@ -209,4 +377,6 @@ var predefinedFilters = [
   ConvolutionFilter(Kernel([0, 0, 0, 0, 1, 0, 0, 0, 0]),
       name: "Identity", icon: Icons.filter_none),
   BidirectionalEdgeDetection(40),
+  AverageDitheringFilter(2),
+  MedianCutFilter(2),
 ];
